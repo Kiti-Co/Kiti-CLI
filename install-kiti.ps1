@@ -1,4 +1,4 @@
-Write-Host "Instalando Kiti CLI..."
+Write-Host "Instalando KitiOS Server..."
 
 $installDir = "$env:USERPROFILE\KitiCLI"
 
@@ -8,7 +8,7 @@ if (!(Test-Path $installDir)) {
 
 Write-Host "Baixando kiti.exe da última release..."
 
-$downloadUrl = "https://github.com/Kiti-Co/Kiti-CLI/releases/latest/download/kiti.exe"
+$downloadUrl = "https://github.com/Kiti-Co/Kiti-CLI/releases/latest/download/KitiOS-Server.exe"
 $dest = "$installDir\kiti.exe"
 
 # download correto, sem curl
