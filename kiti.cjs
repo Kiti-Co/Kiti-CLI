@@ -1,8 +1,13 @@
-// kiti.cjs — versão completa AIO, 100% funcional em CJS
+// kiti.cjs — versão 0.2.2, pkg-friendly, 100% funcional, AIO
 
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 const readline = require("readline");
+
+// -------------------------
+// ASCII BANNER
+// -------------------------
 console.log(`
  ██╗  ██╗██╗████████╗██╗
  ██║ ██╔╝██║╚══██╔══╝██║
@@ -11,32 +16,27 @@ console.log(`
  ██║  ██╗██║   ██║   ██║
  ╚═╝  ╚═╝╚═╝   ╚═╝   ╚═╝
 
-      k i t i   c l i
+       k i t i   c l i
 `);
-// -------------------------
-// SETUP (cria user.json se não existir)
-// -------------------------
-const userConfigPath = path.join(__dirname, "user.json");
 
+// -------------------------
+// PASTA DE DADOS (fora do exe)
+// -------------------------
+const dataDir = path.join(os.homedir(), ".kiti");
+if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir);
+
+// -------------------------
+// USER CONFIG
+// -------------------------
+const userConfigPath = path.join(dataDir, "user.json");
 if (!fs.existsSync(userConfigPath)) {
-    console.log("realizando setup inicial...");
-    fs.writeFileSync(
-        userConfigPath,
-        JSON.stringify(
-            {
-                username: "default",
-                theme: "normal",
-                createdAt: new Date().toISOString()
-            },
-            null,
-            4
-        ),
-        "utf8"
-    );
-    console.log("arquivo user.json criado!\n");
+    fs.writeFileSync(userConfigPath, JSON.stringify({
+        username: "default",
+        theme: "normal",
+        createdAt: new Date().toISOString()
+    }, null, 4));
 }
 
-// carrega config existente
 let userConfig = JSON.parse(fs.readFileSync(userConfigPath, "utf8"));
 let currentTheme = userConfig.theme || "normal";
 
@@ -44,10 +44,10 @@ let currentTheme = userConfig.theme || "normal";
 // TEMAS
 // -------------------------
 const themes = {
-    normal:  { color: "\u001b[36m", name: "normal" },
-    roxo:    { color: "\u001b[35m", name: "roxo" },
-    azul:    { color: "\u001b[34m", name: "azul" },
-    branco:  { color: "\u001b[37m", name: "branco" }
+    neon: { color: "\u001b[36m", name: "neon" },
+    vaporwave: { color: "\u001b[35m", name: "vaporwave" },
+    win98: { color: "\u001b[34m", name: "win98" },
+    dark: { color: "\u001b[37m", name: "dark" }
 };
 
 // -------------------------
@@ -73,19 +73,18 @@ let editFilePath = "";
 // -------------------------
 // COMANDOS
 // -------------------------
-function runCommand(cmd, rl) {
+function runCommand(cmd) {
 
-    // modo edição ativo
+    // MODO EDIÇÃO
     if (editMode) {
         if (cmd === "/save") {
             fs.writeFileSync(editFilePath, editBuffer, "utf8");
-            console.log("arquivo salvo com sucesso!");
+            console.log("Arquivo salvo com sucesso!");
             editMode = false;
             editBuffer = "";
             editFilePath = "";
             return;
         }
-
         editBuffer += cmd + "\n";
         return;
     }
@@ -99,7 +98,7 @@ function runCommand(cmd, rl) {
             if (fs.existsSync(target) && fs.statSync(target).isDirectory()) {
                 currentDir = target;
             } else {
-                console.log("diretório inválido");
+                console.log("Diretório inválido");
             }
             break;
 
@@ -112,7 +111,7 @@ function runCommand(cmd, rl) {
             if (fs.existsSync(filePath)) {
                 console.log(fs.readFileSync(filePath, "utf8"));
             } else {
-                console.log("arquivo inexistente");
+                console.log("Arquivo inexistente");
             }
             break;
 
@@ -121,15 +120,15 @@ function runCommand(cmd, rl) {
             editFilePath = f;
 
             if (fs.existsSync(f)) {
-                console.log("editando arquivo existente");
+                console.log("Editando arquivo existente");
                 editBuffer = fs.readFileSync(f, "utf8");
             } else {
-                console.log("arquivo novo");
+                console.log("Arquivo novo");
                 editBuffer = "";
             }
 
             console.log("--------------------");
-            console.log("digita o novo conteúdo. quando terminar escreve: /save");
+            console.log("Digite o novo conteúdo. Quando terminar escreva: /save");
             console.log("--------------------");
 
             editMode = true;
@@ -139,32 +138,74 @@ function runCommand(cmd, rl) {
             const t = args[0];
             if (themes[t]) {
                 currentTheme = t;
-
-                // salva no user.json
+                // salva no user.json (fora do snapshot)
                 userConfig.theme = t;
                 fs.writeFileSync(userConfigPath, JSON.stringify(userConfig, null, 4));
-
-                console.log(`tema trocado para: ${t}`);
+                console.log(`Tema trocado para: ${t}`);
             } else {
-                console.log("tema inexistente. disponíveis: normal, roxo, azul, branco");
+                console.log("Tema inexistente. Disponíveis: neon, vaporwave, win98, dark");
+            }
+            break;
+
+        case "config":
+            console.log(JSON.stringify(userConfig, null, 4));
+            break;
+
+        case "echo":
+            console.log(args.join(" "));
+            break;
+
+        case "calc":
+            try {
+                console.log(eval(args.join(" ")));
+            } catch {
+                console.log("Erro na expressão");
+            }
+            break;
+
+        case "cp":
+        case "copy":
+            try {
+                const src = path.resolve(currentDir, args[0]);
+                const dest = path.resolve(currentDir, args[1]);
+                if (!fs.existsSync(src)) return console.log("Arquivo de origem não existe");
+                fs.copyFileSync(src, dest);
+            } catch(e) {
+                console.log("Erro ao copiar:", e.message);
+            }
+            break;
+
+        case "mv":
+        case "move":
+            try {
+                const src = path.resolve(currentDir, args[0]);
+                const dest = path.resolve(currentDir, args[1]);
+                if (!fs.existsSync(src)) return console.log("Arquivo de origem não existe");
+                fs.renameSync(src, dest);
+            } catch(e) {
+                console.log("Erro ao mover:", e.message);
             }
             break;
 
         case "help":
             console.log(`
-comandos kiti cli:
+Comandos Kiti CLI:
   cd <dir>
   ls
   open <arquivo>
   edit <arquivo>
   theme <tema>
-  exit
+  config
+  echo <texto>
+  calc <expressão>
+  cp/mv <origem> <destino>
   help
+  exit
 `);
             break;
 
         case "exit":
-            console.log("fechando o kiti cli...");
+            console.log("Saindo do Kiti CLI...");
             process.exit(0);
             break;
 
@@ -172,7 +213,7 @@ comandos kiti cli:
             break;
 
         default:
-            console.log("comando inexistente.");
+            console.log("Comando inexistente.");
     }
 }
 
@@ -186,7 +227,7 @@ const rl = readline.createInterface({
 
 function loop() {
     rl.question(buildPrompt(currentDir), (answer) => {
-        runCommand(answer.trim(), rl);
+        runCommand(answer.trim());
         loop();
     });
 }
