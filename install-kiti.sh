@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-echo "Instalando Kiti CLI para Linux..."
+echo "Instalando KitiOS Server para Linux..."
 
 # pasta de instalação
 INSTALL_DIR="$HOME/.local/bin"
@@ -11,9 +11,9 @@ EXEC_NAME="kiti"
 mkdir -p "$INSTALL_DIR"
 
 # url do binário linux (suba ele na release do GitHub)
-DOWNLOAD_URL="https://github.com/Kiti-Co/Kiti-CLI/releases/latest/download/kiti-linux"
+DOWNLOAD_URL="https://github.com/Kiti-Co/Kiti-CLI/releases/latest/download/KitiOS-Server"
 
-echo "Baixando última versão do Kiti CLI..."
+echo "Baixando última versão do KitiOS Server..."
 curl -L "$DOWNLOAD_URL" -o "$INSTALL_DIR/$EXEC_NAME"
 
 # garante permissão de execução
@@ -27,4 +27,4 @@ fi
 
 echo ""
 echo "Instalação concluída!"
-echo "Execute: kiti"
+echo "Execute: kitios-server"
