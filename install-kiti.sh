@@ -26,6 +26,7 @@ fi
 chmod +x "$INSTALL_DIR/$EXEC_NAME"
 
 # adiciona ao PATH se não estiver
+export PATH=\$PATH:$HOME/.local/bin
 if ! command -v "$EXEC_NAME" &>/dev/null; then
     echo "KitiOS não encontrado no PATH. Para adicioná-lo, execute:"
     echo "  export PATH=\$PATH:$INSTALL_DIR"
