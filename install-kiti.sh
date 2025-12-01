@@ -4,7 +4,7 @@ set -e
 echo "Instalando KitiOS Server para Linux..."
 
 # pasta de instalação
-INSTALL_DIR="$HOME/.local/bin"
+INSTALL_DIR="/bin"
 EXEC_NAME="kiti"
 
 # cria diretório se não existir
